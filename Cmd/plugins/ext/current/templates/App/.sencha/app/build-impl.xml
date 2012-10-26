@@ -174,9 +174,17 @@
     -->
     <target name="-before-page"/>
     <target name="-page">
+        <!-- initialize the build.dir parameter if it hasn't been already -->
+        <local name="build.dir"/>
+        <property name="build.dir" location="${workspace.build.dir}"/>
+
+        <!-- compile the page -->
         <x-sencha-command>
-            app
-            build
+            compile
+            page
+            +yui
+            -in=index.html
+            -out=${build.dir}/index.html
         </x-sencha-command>
     </target>
     <target name="-after-page"/>

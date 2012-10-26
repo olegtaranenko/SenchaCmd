@@ -98,7 +98,28 @@
             depends="init,-before-generate-view,generate-view-impl,-after-generate-view"/>
 
     <target name="app-build-impl">
-        <fail>This is the default implementation from Sencha CMD and must be overriden by the framework.</fail>
+        <local name="antprops"/>
+        <script language="javascript">
+            var archive = project.getProperty("args.archive"),
+                appPath = project.getProperty("args.path");
+            if(!archive) {
+                project.setProperty("antprops", "#"); 
+            } else {
+                project.setProperty("antprops", "-p=args.archive:" + archive); 
+            }
+        </script>
+        <x-sencha-command>
+            config
+            --prop
+            args.path=${args.path}
+            then
+            ant
+            ${antprops}
+            -f
+            ${app.dir}/build.xml
+            ${args.environment}
+            build
+        </x-sencha-command>
     </target>
     <target name="-before-app-build"/>
     <target name="-after-app-build"/>

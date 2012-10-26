@@ -259,18 +259,6 @@
 
     </target>
 
-    <scriptdef name="x-app-build" language="javascript" src="${framework.config.dir}/app-build.js">
-        <classpath>
-            <pathelement location="${cmd.dir}/lib/ant-contrib-1.0b3.jar"/>
-            <pathelement location="${cmd.dir}/sencha.jar"/>
-        </classpath>
-    </scriptdef>
-
-    <target name="app-build-impl">
-        <property name="v2deps" value="false"/>
-        <x-app-build/>
-    </target>
-
     <scriptdef name="x-app-upgrade" language="javascript" src="${framework.config.dir}/app-upgrade.js">
         <classpath>
             <pathelement location="${cmd.dir}/lib/ant-contrib-1.0b3.jar"/>

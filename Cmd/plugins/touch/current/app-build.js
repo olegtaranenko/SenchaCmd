@@ -159,7 +159,7 @@ function concat(list1, list2) {
 }
 
 function resolvePath() {
-    return new File(joinPath.apply(this, arguments)).getCanonicalPath();
+	return new File(joinPath.apply(this, arguments)).getCanonicalPath();
 }
 
 function joinPath() {
@@ -199,7 +199,7 @@ function copy(src, dest, filter) {
 }
 
 function runAppBuild(proj) {
-    var basedir = proj.getProperty("basedir"),
+    var basedir = proj.getProperty("framework.config.dir"),
         appPath = proj.getProperty("args.path"),
         envArg = proj.getProperty("args.environment"),
         config = readConfig(resolvePath(appPath, "app.json")),
@@ -359,7 +359,7 @@ function runAppBuild(proj) {
             '.js';
         _logger.debug("using microloader : {}", microloader);
         content = readFileContent(joinPath(sdk, "microloader", microloader));
-//        content = compressor.compress(content);
+        content = compressor.compress(content);
         remotes = [
             '<script type="text/javascript">' +
                 content + ';Ext.blink(' +
@@ -402,7 +402,8 @@ function runAppBuild(proj) {
         phantomRunner = new PhantomJsRunner(),
         processedAssetCount = 0,
         assetsCount, dependencies, files, file,
-        destinationFile, compressor;
+        destinationFile, compressor,
+		cleanFile, cleanDestinationFile;
 
     if(v2deps) {
         // if v2deps, use the sencha command 2 sytle dependency resolution mechanism
@@ -471,14 +472,16 @@ function runAppBuild(proj) {
     assetsCount = assets.length;
 
     each(assets, function (asset) {
-        file = asset.path;
-        destinationFile = resolvePath(destination, file);
-
-        var cleanFile = stripSpecialDirNames(file),
+        if(!asset.remote) {
+            file = asset.path;
+            destinationFile = resolvePath(destination, file),
+            cleanFile = stripSpecialDirNames(file),
             cleanDestinationFile = resolvePath(destination, cleanFile);
 
-        // adjust the asset path to use the cleaned filename
-        asset.path = cleanFile;
+            // adjust the asset path to use the cleaned filename
+            asset.path = cleanFile;
+        }
+
 
         _logger.debug("Assets => Processed : {} Total : {}",
             processedAssetCount, assetsCount);
@@ -489,9 +492,9 @@ function runAppBuild(proj) {
                 writeFileContent(
                     cleanDestinationFile,
                     preprocessor.parse(readFileContent(destinationFile)));
-                _logger.info('Processed local file ' + file);
+                _logger.info('Processed local file ' + asset.path);
             } else {
-                _logger.info('Processed remote file ' + file);
+                _logger.info('Processed remote file ' + asset.path);
             }
         }
 
@@ -510,8 +513,7 @@ function runAppBuild(proj) {
 
             writeFileContent(
                 cleanDestinationFile,
-                readFileContent(cleanDestinationFile));
-//                compressor.compress(readFileContent(cleanDestinationFile)));
+                compressor.compress(readFileContent(cleanDestinationFile)));
 
             _logger.info("Minified " + file);
 
@@ -571,7 +573,7 @@ function runAppBuild(proj) {
                             runnerOut = runner.run(args),
                             exitCode = runnerOut.getExitCode(),
                             stdout = runnerOut.getOutput();
-
+                            
                         if (exitCode > 0) {
                             _logger.error("failed generating diff from {} to {}",
                                 archivedVersion,
@@ -581,6 +583,17 @@ function runAppBuild(proj) {
                                 archivedVersion,
                                 version).raise();
                         }
+                        
+                        // fixup malformed vcdiff content
+                        var deltaFilePath = resolvePath(deltaFile),
+                            content = FileUtil.readFile(deltaFilePath);
+                        if(content.endsWith(",]")) {
+                            _logger.debug("Correcting trailing comma issue in vcdiff output");
+                            FileUtil.writeFile(deltaFilePath, content.substring(0, content.length() - 2) + "]");
+                        }
+                        
+                        content = null;
+                        
                         _logger.info(
                             "Generated delta for: {} from hash: '{}' to hash: '{}'",
                             [cleanFile, archivedVersion, version]);
@@ -644,10 +657,12 @@ function runAppBuild(proj) {
                         joinPath(src, 'packager.temp.json'),
                         jsonEncode(packagerConfig));
 
-                    _logger.info("Packaging your application as a native app...");
+                    _logger.info(
+                        "Packaging your application as a native app to {} ...",  
+                        packagerConfig.outputPath);
 
                     var stbuildRunner = new StBuildRunner(),
-                        args = ['run', resolvePath(src, 'packager.temp.json')],
+                        args = ['package', resolvePath(src, 'packager.temp.json')],
                         stbuildOut = stbuildRunner.run(args),
                         exitCode = stbuildOut.getExitCode(),
                         stdout = stbuildOut.getOutput();
@@ -657,6 +672,11 @@ function runAppBuild(proj) {
                         _logger.error(stdout);
                         throw new ExBuild("failed running native packager")
                             .raise();
+                    } else {
+                        _logger.info("Successfully packaged native application");
+                        _logger.info(
+                            "Package may be run with 'sencha package run -p {}", 
+                            joinPath(src, 'packager.temp.json'))
                     }
                 } else {
                     _logger.debug("skipping native packaging");
@@ -668,6 +688,9 @@ function runAppBuild(proj) {
     if (environment == 'testing') {
         processIndex();
     }
+    
+    _logger.info("Successfully deployed your application to " + destination);
+
 }
 
 function writeAppCache(appCache, outfile) {
@@ -702,11 +725,6 @@ function writeAppCache(appCache, outfile) {
 
 
 (function (proj) {
-    try {
-        _logger.info("building application");
-        runAppBuild(proj);
-    } catch (err) {
-        _logger.error("Exception running app build : " + err);
-        throw err;
-    }
+	_logger.info("building application");
+	runAppBuild(proj);
 })(project);

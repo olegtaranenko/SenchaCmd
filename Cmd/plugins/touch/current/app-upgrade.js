@@ -346,11 +346,6 @@ function runAppUpgrade(proj) {
 }
 
 (function (proj) {
-    try {
-        _logger.info("building application");
-        runAppUpgrade(proj);
-    } catch (err) {
-        _logger.error("Exception running app build : " + err);
-        throw err;
-    }
+    _logger.info("building application");
+    runAppUpgrade(proj);
 })(project);
