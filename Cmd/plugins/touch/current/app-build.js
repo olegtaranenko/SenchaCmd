@@ -446,7 +446,7 @@ function runAppBuild(proj) {
             args = [
                 'compile',
                 '--ignore=' + ignores,
-                '--options=debug:false,logger:false,minVersion:3,product:touch',
+                '--options=debug:false,logger:no,minVersion:3,product:touch',
                 'union',
                 '--recursive',
                 '--file=app.js',

@@ -199,6 +199,17 @@ function endsWith(input, substr) {
     return input.indexOf(substr, input.length - substr.length) !== -1;
 }
 
+function isChildPath(parent, child) {
+    var parentPath = PathUtil.getCanonicalPath(parent) + '',
+        childPath = PathUtil.getCanonicalPath(child) + '';
+
+    return childPath.indexOf(parentPath) === 0;
+}
+
+function exists(path) {
+    return new File(path).exists();
+}
+
 function runAppUpgrade(proj) {
     var basedir = proj.getProperty("basedir"),
         newSdkPath = proj.getProperty("args.path"),
@@ -222,8 +233,8 @@ function runAppUpgrade(proj) {
             appConfigFile = resolvePath(appPath, "app.json"),
             appConfig = readConfig(appConfigFile),
             oldSdkVersion = FileUtil.readFile(resolvePath(appSdkPath, "version.txt")).trim(),
-            backupPath = resolvePath(appPath, ".sencha_backup", oldSdkVersion),
-            sdkBackupPath = resolvePath(backupPath, appSdkPtr),
+            appBackupPath = resolvePath(appPath, ".sencha_backup", appName, oldSdkVersion),
+            sdkBackupPath = resolvePath(appBackupPath, appSdkPtr),
             appName = appConfig.name,
             generateCmd = [
                 "--sdk-path=" + newSdkPath,
@@ -250,11 +261,11 @@ function runAppUpgrade(proj) {
 
         moveFiles(proj, appSdkPath, sdkBackupPath);
 
-        _logger.info("Renamed {} to {} for backup", appSdkPath, backupPath);
+        _logger.info("Renamed {} to {} for backup", appSdkPath, sdkBackupPath);
 
         _logger.debug("Backing up application specific files");
 
-        copyFiles(proj, appPath, backupPath, appFiles);
+        copyFiles(proj, appPath, appBackupPath, "**/*", ".sencha_backup/**/*");
 
         _logger.info("Creating new application structure");
 
@@ -300,11 +311,12 @@ function runAppUpgrade(proj) {
     else if(hasSenchaDir) {
 
         var frameworkName = proj.getProperty("framework.name"),
+            appName = proj.getProperty("app.name"),
+            workspacePath = proj.getProperty("workspace.dir"),
             appSdkPath = resolvePath(proj.getProperty(frameworkName + ".dir")),
             oldSdkVersion = proj.getProperty("framework.version"),
-            backupPath = resolvePath(appPath, ".sencha_backup", oldSdkVersion),
-            sdkBackupPath = resolvePath(backupPath, frameworkName),
-            appName = proj.getProperty("app.name"),
+            appBackupPath = resolvePath(appPath, ".sencha_backup", appName, oldSdkVersion),
+            sdkBackupPath = resolvePath(workspacePath, ".sencha_backup", frameworkName, oldSdkVersion),
             generateCmd = [
                 "--sdk-path=" + newSdkPath,
                 "generate",
@@ -313,27 +325,37 @@ function runAppUpgrade(proj) {
                 appName,
                 appPath
             ],
-            sencha = new Sencha(),
-            appFiles = [
-                "index.html"
-            ];
+            appBackupExcludes = [
+                ".sencha_backup/**/*"
+            ],
+            sencha = new Sencha();
 
-        _logger.debug("Backing up application sdk from {} to {}",
-        appSdkPath,
-        sdkBackupPath);
+        if(!exists(sdkBackupPath)) {
+            _logger.info("Backing up framework files from {} to {}",
+                appSdkPath,
+                sdkBackupPath);
 
-        moveFiles(proj, appSdkPath, sdkBackupPath);
+            moveFiles(proj, appSdkPath, sdkBackupPath);
+        }
 
-        _logger.info("Renamed {} to {} for backup", appSdkPath, backupPath);
+        _logger.info("Backing up application files from {} to {}",
+            appPath,
+            appBackupPath);
 
-        _logger.debug("Backing up application specific files");
+        if(isChildPath(appPath, appSdkPath)) {
+            _logger.debug("excluding framework files from app backup");
+            appBackupExcludes.push(PathUtil.getRelativePath(appPath, appSdkPath) + "/**/*");
+        }
 
-        copyFiles(proj, appPath, backupPath, appFiles);
+        copyFiles(proj, appPath, appBackupPath, ["**/*"].join(','), appBackupExcludes.join(','));
 
-        _logger.info("Updating application and workspace structure");
+        _logger.info("Updating application and workspace files");
         _logger.debug("running command : sencha " + generateCmd.join(" "));
 
         sencha.dispatch(generateCmd);
+
+        _logger.info("A backup of pre-upgrade application files is available at {}", 
+            appBackupPath);
 
     } else if(!hasSenchaSdkFile) {
 

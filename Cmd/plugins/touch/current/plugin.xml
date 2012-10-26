@@ -34,14 +34,16 @@
         <copy file="${framework.target.dir}/sencha-touch-all-debug.js"
               tofile="${framework.target.dir}/sencha-touch-all.js"/>
 
-
-        <script language="javascript">
-            importPackage(java.lang);
-            project.setProperty('newline', new String('\n'));
-        </script>
-        <echo append="true"
-              file="${args.path}/${senchadir}/workspace/sencha.cfg"
-                >${framework.name}.dir=${workspace.dir}/${framework.relative.path}${newline}</echo>
+        <propertyfile file="${args.path}/${senchadir}/workspace/sencha.cfg">
+            <entry type="string"
+                   operation="="
+                   key="${framework.name}.dir" 
+                   value="$${workspace.dir}/${framework.relative.path}"/>
+            <entry type="string"
+                   operation="="
+                   key="workspace.cmd.version" 
+                   value="${cmd.version}"/>
+        </propertyfile>
     </target>
 
     <scriptdef name="x-generate-uuid" language="javascript">
@@ -217,7 +219,7 @@
     <!--
         Adds mvc class references to the main app.js script
     -->
-    <target name="update-app">
+    <target name="update-app" unless="args.upgrade">
         <property name="app.js.file" value="${args.path}/app.js"/>
         <loadfile property="appData" srcfile="${app.js.file}"/>
 
@@ -268,6 +270,13 @@
 
     <target name="app-upgrade-impl">
         <x-app-upgrade/>
+        <echo>Updating Application sencha.cfg</echo>
+        <propertyfile file="${app.config.dir}/sencha.cfg">
+            <entry type="string"
+                   operation="="
+                   key="app.cmd.version" 
+                   value="${cmd.version}"/>
+        </propertyfile>
     </target>
 
     <target name="app-resolve-impl">

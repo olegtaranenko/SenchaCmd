@@ -77,7 +77,7 @@
     -->
     <target name="-before-clean"/>
     <target name="-clean">
-        <delete dir="${build.dr}"/>
+        <delete dir="${build.dir}"/>
     </target>
     <target name="-after-clean"/>
     <target name="clean"
@@ -126,10 +126,14 @@
         <!-- copy framework / app resource files to build.dir -->
         <copy todir="${build.dir}">
             <fileset dir="${app.dir}"
-                     includes="resources/**/*,
-                               ext/resources/themes/images/**/*"
-                     excludes="resources/sass/**/*,
-                               resources/theme/**/*"/>
+                     includes="resources/**/*"
+                     excludes="resources/sass,
+                               resources/theme"/>
+        </copy>
+        <copy toDir="${build.dir}/${framework.name}">
+            <fileset dir="${framework.dir}" 
+                     includes="resources/themes/images/**/*,
+                               src/ux/**/css/**/*"/>
         </copy>
     </target>
     <target name="-after-sass"/>

@@ -18,6 +18,11 @@
         "defaultPropertyName" : "defaultProxyType"
     },
     {
+        "baseClassName" : "Ext.data.Model",
+        "propertyName" : "validations",
+        "directRef" : "Ext.data.Validations"
+    },
+    {
         "baseClassName" : "Ext.data.proxy.Proxy",
         "propertyName" : "reader",
         "aliasPrefix" : "reader.",
