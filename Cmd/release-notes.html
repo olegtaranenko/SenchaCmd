@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+    <title>
+        Ext JS Release Notes
+    </title>
+    <style>
+        body {
+            color: #333;
+            padding: 0 40px 40px;
+            font-family: Helvetica, Arial, Geneva, sans-serif;
+            font-size: 12px;
+            line-height: normal;
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        a#logo {
+            background: transparent url(logo-sencha-sm.png) no-repeat scroll 0px 100%;
+            display: block;
+            height: 58px;
+            margin: 0;
+            padding: 0;
+            width: 134px;
+
+            overflow: hidden;
+            text-indent: 150%;
+            white-space: nowrap;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Helvetica Neue', Helvetica, Arial, Geneva, sans-serif;
+            font-weight: 600;
+            margin: 1em 0;
+        }
+        h1 { font-size: 28px; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 16px; }
+        ul li { padding: 2px 0; }
+        .doc { color: blue; }
+        .change { color: #196cb4; }
+        .new { color: #6e7a32; }
+        ul { padding: .1em 1.5em; }
+        .notes { color: #777; }
+        a { color: #0464BB; }
+        a:hover { color: rgb(28, 65, 124); }
+
+        pre {
+            background: ghostWhite;
+            border: 1px solid #ddd;
+            font-family: Menlo, Monaco, Courier, monospace;
+            overflow: auto;
+            padding: 12px;
+        }
+
+        hr {
+            color: #e0e0e0;
+            background-color: #e0e0e0;
+            height: 4px;
+            border: none;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+<p>
+    <a href="http://www.sencha.com/" id="logo" name="logo">Sencha Cmd</a>
+</p>
+
+<div id="releases">
+    <!-- ************************************************************************** -->
+    <!--
+    When a release is made, copy the generated div below this dynamic section
+    and then edit the queries below to adjust for the next release.
+    -->
+    <div class="release">
+        <h1>Release Notes for Sencha Cmd 3.0 Beta 2</h1>
+        <p class="notes">
+            Release Date: September 26, 2012<br>
+            Version Number: 3.0.0.?
+        </p>
+        <h2>Customizable Builds</h2>
+        
+        <p>In this release we have introduced a new, top-level build command to provide a
+        consistent and customizable build process for Ext JS and Sencha Touch applications
+        In previous releases, Sencha Touch used "sencha app build" as the top-most command
+        to perform an application build. The logic behind this, however, was entirely 
+        contained in Sencha Cmd and hence could not be customized.</p>
+
+        <p>The new command is:</p>
+        
+        <pre>
+    sencha ant [production|testing|native|package] build</pre>
+
+        <p>This runs the generated <a href="http://ant.apache.org/" target="_blank">Ant</a>
+        build script to build your application. The reason the arguments are swapped vs
+        "sencha app build" is to accomodate how Ant processes the command line.</p>
+        
+        <p>That's all that is necessary to change to "sencha ant build". You don't have to
+        do anything extra to get Ant (it is provided by Sencha Cmd) and you don't have to
+        know anything more about Ant than this command. That is, unless you want to
+        customize the build script.</p>
+
+        <p>For details on tuning your application's Ant build script, start by reading the
+        comments contained in "build.xml" (the Ant build script). Also you can consult the
+        <a href="http://ant.apache.org/manual/index.html" target="_blank">Ant Manual</a>
+        for details on using Ant.</p>
+        
+        <p>Alternatively, you can chose to wrap your own build process around the new
+        "sencha ant build" command in much the same way as you would with "sencha app build".</p>
+        
+        <h2>Bugs Fixed</h2>
+<ul>
+    <li class="component">Cmd (3)
+        <ul class="tickets">
+            <li class="ticket">
+                <span class="ticket-number">TOUCH-3450</span>&#160;<span class="ticket-notes">[2.1 beta3] Bug in the config.rb file (SASS Compile)</span>
+            </li>
+            <li class="ticket">
+                <span class="ticket-number">TOUCH-3454</span>&#160;<span class="ticket-notes">[2.1 beta3] sencha generate app failed on linux64</span>
+            </li>
+            <li class="ticket">
+                <span class="ticket-number">TOUCH-3466</span>&#160;<span class="ticket-notes">[2.1.0-b3] Ext.Loader path problem</span>
+            </li>
+        </ul>
+    </li>
+    <li class="component">Compiler (1)
+        <ul class="tickets">
+            <li class="ticket">
+                <span class="ticket-number">SDKTOOLS-177</span>&#160;<span class="ticket-notes">No dianogstic message when set match criteria match nothing in the classpath</span>
+            </li>
+        </ul>
+    </li>
+    <li class="component">Generator (1)
+        <ul class="tickets">
+            <li class="ticket">
+                <span class="ticket-number">SDKTOOLS-170</span>&#160;<span class="ticket-notes">ExtJs autogenerated sample app contains maintainFlex property, which is nowhere implemented in code</span>
+            </li>
+        </ul>
+    </li>
+    <li class="component">Misc (4)
+        <ul class="tickets">
+            <li class="ticket">
+                <span class="ticket-number">SDKTOOLS-162</span>&#160;<span class="ticket-notes">Sencha Cmd v3.0 :: CSS is overriden and erased // bad relative reference to images</span>
+            </li>
+            <li class="ticket">
+                <span class="ticket-number">SDKTOOLS-172</span>&#160;<span class="ticket-notes">Metadata is generated for the fake MVC Application-derived class</span>
+            </li>
+            <li class="ticket">
+                <span class="ticket-number">SDKTOOLS-180</span>&#160;<span class="ticket-notes">Using -append on compile concat or meta commands fails if output file has no path specified</span>
+            </li>
+            <li class="ticket">
+                <span class="ticket-number">SDKTOOLS-184</span>&#160;<span class="ticket-notes">Dependency re-scan should be triggered when options change on compile context</span>
+            </li>
+        </ul>
+    </li>
+Total: 9</ul>
+        <h2>Known Issues</h2>
+<ul>
+Total: 0</ul>
+    </div>
+    <!-- Paste release notes after a release below here... -->
+    <!-- ************************************************************************** -->
+</body>
+</html>
