@@ -88,7 +88,8 @@
             <param name="item" value="${args.controllerName}"/>
             <param name="section" value="controllers"/>
         </antcall>
-
+        <mkdir dir="${args.path}/app/model"/>
+        <mkdir dir="${args.path}/app/store"/>
         <x-sencha-command>
             --sdk-path=${args.path}
             app

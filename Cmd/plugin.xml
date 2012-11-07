@@ -101,12 +101,13 @@
         <local name="antprops"/>
         <script language="javascript">
             var archive = project.getProperty("args.archive"),
-                appPath = project.getProperty("args.path");
-            if(!archive) {
-                project.setProperty("antprops", "#"); 
-            } else {
-                project.setProperty("antprops", "-p=args.archive:" + archive); 
+                appPath = project.getProperty("args.path"),
+                autoRun = project.getProperty("args.autorun"),
+                antProps = "-p=args.autorun:" + autoRun
+            if(archive) {
+                antProps += ",args.archive:" + archive;
             }
+            project.setProperty("antprops", antProps);
         </script>
         <x-sencha-command>
             config

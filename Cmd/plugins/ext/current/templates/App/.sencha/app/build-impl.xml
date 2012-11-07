@@ -59,10 +59,53 @@
     <target name="-init">
         <taskdef resource="com/sencha/ant/antlib.xml" classpath="${cmd.dir}/sencha.jar"/>
         <x-sencha-init prefix=""/>
+        
+        <property name="build.compression.production" value="-yui"/>
+        <property name="build.compression.testing" value=""/>
+        
+        <!--
+            These properties can be modified to change general build options
+            such as excluding files from the set.  The format expects newlines
+            for each argument, for example:
+            
+            build.operations.production=exclude\n \
+                                        -namespace\n \
+                                        Ext
+        -->
+        <property name="build.operations.production" value=""/>
+        <property name="build.operations.testing" value=""/>
+        
+        <property name="build.options.production" value="-debug=false"/>
+        <property name="build.options.testing" value=""/>
+        
+        <!-- init environment -->
+        <property name="args.environment" value="production"/>
+        
+        <if>
+            <equals arg1="${args.environment}" arg2="production"/>
+            <then>
+                <property name="build.compression" value="${build.compression.production}"/>
+                <property name="build.operations" value="${build.operations.production}"/>
+                <property name="build.options" value="${build.options.production}"/>
+            </then>
+            <else>
+                <if>
+                    <equals arg1="${args.environment}" arg2="testing"/>
+                    <then>
+                        <property name="build.compression" value="${build.compression.testing}"/>
+                        <property name="build.operations" value="${build.operations.testing}"/>
+                        <property name="build.options" value="${build.options.testing}"/>
+                    </then>
+                    <else>
+                        <fail>The ExtJS SDK currently supports 'production' and 'testing' builds not ${args.environment}</fail>
+                    </else>
+                </if>
+            </else>
+        </if>
 
         <!-- initialize the build.dir property from the workspace config after we've loaded it -->
-        <property name="build.dir" location="${workspace.build.dir}"/>
-
+        <property name="build.dir" location="${workspace.build.dir}/${args.environment}"/>
+        
         <!-- Some operations require sencha.jar in the Ant classpath -->
         <x-extend-classpath>
             <jar path="${cmd.dir}/sencha.jar"/>
@@ -130,7 +173,18 @@
                      excludes="resources/sass,
                                resources/theme"/>
         </copy>
-        <copy toDir="${build.dir}/${framework.name}">
+        
+        <script language="javascript">
+            importPackage(com.sencha.util);
+            var fwPath = project.getProperty("framework.dir"),
+                appPath = project.getProperty("app.dir");
+            
+            project.setProperty(
+                'framework.rel.path', 
+                PathUtil.getRelativePath(appPath, fwPath));
+        </script>
+        
+        <copy toDir="${build.dir}/${framework.rel.path}">
             <fileset dir="${framework.dir}" 
                      includes="resources/themes/images/**/*,
                                src/ux/**/css/**/*"/>
@@ -178,17 +232,24 @@
     -->
     <target name="-before-page"/>
     <target name="-page">
-        <!-- initialize the build.dir parameter if it hasn't been already -->
-        <local name="build.dir"/>
-        <property name="build.dir" location="${workspace.build.dir}"/>
-
+        
         <!-- compile the page -->
         <x-sencha-command>
             compile
-            page
-            +yui
-            -in=index.html
-            -out=${build.dir}/index.html
+                ${build.options}
+                page
+                    -name=page
+                    -in=index.html
+                    -out=${build.dir}/index.html
+                and
+                restore
+                    page
+                and
+                ${build.operations}
+                and
+                concat
+                    ${build.compression}
+                    -out=${build.dir}/all-classes.js
         </x-sencha-command>
     </target>
     <target name="-after-page"/>
@@ -263,6 +324,36 @@ process.
  * skip.page        Do not build the HTML page.
  * skip.sass        Do not build the SASS.
  * skip.theme       Do not build the theme images.
+            
+The following properties can be used to modify the build process.
+            
+ * build.compression.production        Set the compression for a production
+                                       build.
+ * build.compression.testing           Set the compression for a test build.
+                                       (defaults to none)
+ * build.compression                   Set the compression for all builds.
+                                       (defaults to build.compression.production
+                                        or build.compression.testing)
+            
+ * build.operations.production         Insert commands into the compile command
+                                       for a production build. 
+ * build.operations.testing            Insert commands into the compile command
+                                       for a testing build.
+ * build.operations                    Insert commands into the compile command
+                                       for all builds.
+                                       (defaults to build.operations.production
+                                        or build.operations.testing)
+ 
+ * build.options.production            Set options for a production build.
+                                       (eg: -debug=false)
+ * build.options.testing               Set options for a testing build.
+ * build.options                       Set options for all builds.
+                                       (defaults to build.options.production
+                                        or build.options.testing)
+
+For details about how these options affect your build, see
+
+    ${basedir}/.sencha/app/build-impl.xml
 
 These options can be stored in a local.properties file in this folder or in the
 local.properties file in the workspace.

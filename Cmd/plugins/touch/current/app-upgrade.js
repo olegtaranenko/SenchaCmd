@@ -240,6 +240,7 @@ function runAppUpgrade(proj) {
                 "--sdk-path=" + newSdkPath,
                 "generate",
                 "app",
+                "-upgrade",
                 appName,
                 appPath
             ],
@@ -269,6 +270,7 @@ function runAppUpgrade(proj) {
 
         _logger.info("Creating new application structure");
 
+        _logger.debug(generateCmd.join(" "));
         sencha.dispatch(generateCmd);
 
         _logger.info("Updating references to framework files");
@@ -305,6 +307,10 @@ function runAppUpgrade(proj) {
         });
 
         deleteFile(appSdkFile);
+
+        // set the app config path for sencha.cfg update downstream
+        proj.setProperty("app.ir", appPath);
+        proj.setProperty("app.config.dir", [appPath, '.sencha', 'app'].join(File.separator));
 
     }
     // v3 app
